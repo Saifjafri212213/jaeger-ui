@@ -223,6 +223,17 @@ describe('DeepDependencyGraphPage', () => {
         expect(getUrlSpy).toHaveBeenLastCalledWith(expect.objectContaining({ hash }), undefined);
       });
 
+      it('omits hash when props.graphState is missing or not done', () => {
+        [undefined, { state: fetchedState.LOADING }].forEach(graphState => {
+          const ddgPage = new DeepDependencyGraphPageImpl({ ...props, graphState });
+          ddgPage.updateUrlState({});
+          expect(getUrlSpy).toHaveBeenLastCalledWith(
+            expect.not.objectContaining({ hash: expect.anything() }),
+            undefined
+          );
+        });
+      });
+
       describe('clearOperation', () => {
         let trackClearOperationSpy;
 
@@ -958,6 +969,14 @@ describe('DeepDependencyGraphPage', () => {
     it('sanitizes urlState', () => {
       deriveDdgPageProps(search, doneGraphState);
       expect(sanitizeUrlStateSpy).toHaveBeenLastCalledWith(expected.urlState, hash);
+    });
+
+    it('sanitizes urlState without a hash when graphState is missing or not done', () => {
+      deriveDdgPageProps(search, undefined);
+      expect(sanitizeUrlStateSpy).toHaveBeenLastCalledWith(expected.urlState, undefined);
+
+      deriveDdgPageProps(search, { state: fetchedState.LOADING });
+      expect(sanitizeUrlStateSpy).toHaveBeenLastCalledWith(expected.urlState, undefined);
     });
   });
 

@@ -101,4 +101,22 @@ describe('TracesDdgImpl', () => {
     expect(withoutService.graph).toBeUndefined();
     expect(withoutService.graphState).toBeUndefined();
   });
+
+  it('sanitizes urlState with the model hash only if service is defined', () => {
+    const mockModel = { hash: 'test hash' };
+    jest.spyOn(GraphModel, 'makeGraph').mockReturnValue({});
+    jest.spyOn(transformDdgData, 'default').mockReturnValue(mockModel);
+    jest.spyOn(transformTracesToPaths, 'default').mockReturnValue('payload');
+    const sanitizeUrlStateSpy = jest.spyOn(url, 'sanitizeUrlState').mockImplementation(u => u);
+
+    const withService = { service: 'svc', operation: 'op' };
+    jest.spyOn(url, 'getUrlState').mockReturnValue(withService);
+    render(<TracesDdgImpl location={{ search: '' }} traceIDs={[]} />);
+    expect(sanitizeUrlStateSpy).toHaveBeenLastCalledWith(withService, mockModel.hash);
+
+    const withoutService = { service: undefined };
+    jest.spyOn(url, 'getUrlState').mockReturnValue(withoutService);
+    render(<TracesDdgImpl location={{ search: '' }} traceIDs={[]} />);
+    expect(sanitizeUrlStateSpy).toHaveBeenLastCalledWith(withoutService, undefined);
+  });
 });
